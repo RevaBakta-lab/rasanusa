@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-labelledby="judul deskripsi">
+  <title id="judul">Ilustrasi botol deterjen cair</title>
+  <desc id="deskripsi">Botol deterjen cair satu liter dengan gelembung sabun di latar aqua dan mint.</desc>
+  <defs>
+    <linearGradient id="latar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ECFEFF" />
+      <stop offset="1" stop-color="#D1FAE5" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#latar)" />
+  <circle cx="330" cy="64" r="38" fill="#A7F3D0" opacity="0.5" />
+  <circle cx="66" cy="232" r="46" fill="#A5F3FC" opacity="0.45" />
+  <ellipse cx="200" cy="254" rx="88" ry="12" fill="#0E7490" opacity="0.12" />
+  <rect x="148" y="82" width="104" height="158" rx="20" fill="#0E7490" />
+  <rect x="168" y="62" width="64" height="28" rx="8" fill="#155E75" />
+  <rect x="160" y="50" width="80" height="16" rx="8" fill="#083344" />
+  <rect x="164" y="120" width="72" height="82" rx="12" fill="#ECFDF5" />
+  <path d="M200 132c13 16 22 26 22 37a22 22 0 0 1-44 0c0-11 9-21 22-37Z" fill="#0E7490" />
+  <text x="200" y="192" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="700" fill="#083344">DETERJEN</text>
+  <text x="200" y="207" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">1L</text>
+  <circle cx="300" cy="120" r="10" fill="#FFFFFF" opacity="0.85" />
+  <circle cx="318" cy="144" r="6" fill="#FFFFFF" opacity="0.7" />
+  <circle cx="286" cy="162" r="7" fill="#A7F3D0" />
+  <circle cx="306" cy="180" r="4" fill="#FFFFFF" opacity="0.8" />
+</svg>

@@ -1,3 +1,5 @@
+import { WHATSAPP_NUMBER, buildWhatsAppUrl } from './config.js';
+
 const rupiahFormatter = new Intl.NumberFormat('id-ID', {
   maximumFractionDigits: 0,
 });
@@ -37,6 +39,35 @@ export function getStockMeta(stock) {
   return { label: `Stok: ${stock}`, tone: 'normal' };
 }
 
+function renderOrderButton(product) {
+  const nama = escapeHtml(product.nama);
+  const tersedia = Number(product.stok) > 0;
+
+  if (!tersedia) {
+    return `
+      <button type="button" class="btn btn--whatsapp" disabled aria-label="Stok habis, ${nama} tidak dapat dipesan">
+        <span class="wa-icon" aria-hidden="true">WA</span>
+        <span>Stok habis</span>
+      </button>
+    `;
+  }
+
+  const url = escapeHtml(buildWhatsAppUrl(WHATSAPP_NUMBER, product));
+
+  return `
+    <a
+      class="btn btn--whatsapp"
+      href="${url}"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Pesan ${nama} via WhatsApp"
+    >
+      <span class="wa-icon" aria-hidden="true">WA</span>
+      <span>Pesan via WhatsApp</span>
+    </a>
+  `;
+}
+
 export function renderProductCard(product) {
   const stock = getStockMeta(product.stok);
   const featured = product.unggulan
@@ -46,6 +77,15 @@ export function renderProductCard(product) {
   return `
     <article class="product-card">
       <div class="product-media">
+        <img
+          class="product-photo"
+          src="${escapeHtml(product.imageUrl)}"
+          alt="Ilustrasi ${escapeHtml(product.nama)}"
+          width="400"
+          height="300"
+          loading="lazy"
+          decoding="async"
+        />
         <span class="product-monogram" aria-hidden="true">${escapeHtml(getInitials(product.nama))}</span>
         ${featured}
       </div>
@@ -55,8 +95,34 @@ export function renderProductCard(product) {
         <p class="price">${formatRupiah(product.harga)}</p>
         <p class="stock stock--${stock.tone}">${escapeHtml(stock.label)}</p>
         <p class="product-desc">${escapeHtml(product.deskripsi)}</p>
+        <div class="product-action">${renderOrderButton(product)}</div>
       </div>
     </article>
+  `;
+}
+
+export function renderCategoryCard(category, count) {
+  const productLabel = count === 1 ? '1 produk' : `${count} produk`;
+
+  return `
+    <article class="category-card">
+      <span class="category-code" aria-hidden="true">${escapeHtml(category.kode)}</span>
+      <div class="category-body">
+        <h3>${escapeHtml(category.nama)}</h3>
+        <p>${escapeHtml(category.deskripsi)}</p>
+      </div>
+      <span class="category-count">${productLabel}</span>
+    </article>
+  `;
+}
+
+export function renderNoResultsState() {
+  return `
+    <div class="empty-state">
+      <h3>Tidak ada produk yang cocok</h3>
+      <p>Coba kata kunci lain atau atur ulang filter pencarian.</p>
+      <button type="button" class="btn btn--primary js-reset-filters" data-reset-filters>Reset filter</button>
+    </div>
   `;
 }
 

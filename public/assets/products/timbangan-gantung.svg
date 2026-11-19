@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-labelledby="judul deskripsi">
+  <title id="judul">Ilustrasi timbangan gantung</title>
+  <desc id="deskripsi">Timbangan gantung digital dengan pengait untuk menakar cucian.</desc>
+  <defs>
+    <linearGradient id="latar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ECFDF5" />
+      <stop offset="1" stop-color="#CFFAFE" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#latar)" />
+  <circle cx="330" cy="196" r="50" fill="#A7F3D0" opacity="0.5" />
+  <circle cx="72" cy="82" r="42" fill="#A5F3FC" opacity="0.45" />
+  <path d="M200 38v46" stroke="#083344" stroke-width="10" stroke-linecap="round" />
+  <path d="M174 34h52" stroke="#083344" stroke-width="10" stroke-linecap="round" />
+  <path d="M174 84h52l24 44v82c0 10-8 18-18 18h-64c-10 0-18-8-18-18v-82l24-44Z" fill="#0E7490" />
+  <rect x="164" y="130" width="72" height="44" rx="9" fill="#ECFDF5" />
+  <text x="200" y="151" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#083344">25 kg</text>
+  <text x="200" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="8" font-weight="600" fill="#475569">DIGITAL</text>
+  <path d="M200 184v30" stroke="#083344" stroke-width="8" stroke-linecap="round" />
+  <path d="M176 214h48l-24 34-24-34Z" fill="#083344" />
+  <circle cx="306" cy="120" r="8" fill="#FFFFFF" opacity="0.85" />
+  <circle cx="322" cy="142" r="4" fill="#FFFFFF" opacity="0.7" />
+  <circle cx="88" cy="180" r="6" fill="#FFFFFF" opacity="0.8" />
+</svg>
