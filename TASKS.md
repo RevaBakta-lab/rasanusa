@@ -111,7 +111,7 @@ Dokumen ini memecah `SPEC.md` (perilaku & acceptance criteria) dan `UI-SPEC.md` 
 
 **Aktivitas**
 
-- `src/config.js`: `WHATSAPP_NUMBER` (digit saja, nilai demo fiktif), kunci `washly:products:v1`, daftar 8 path gambar.
+- `src/config.js`: `WHATSAPP_NUMBER` (digit saja, nilai demo fiktif). Kunci `rasanusa:products:v1` ada di `src/store.js`; daftar path gambar ada di `src/products.js`.
 - `src/store.js`: 8 data seed persis tabel SPEC 5.2; `load()` seed bila kosong; `save()` menulis `{version:1, products}`; fungsi CRUD dasar yang memanggil `save()`.
 - `src/ui.js`: `formatRupiah`, `escapeHtml`, helper toast/empty state (kerangka).
 - Komentar singkat bahwa nomor WhatsApp adalah demo fiktif.
@@ -119,7 +119,7 @@ Dokumen ini memecah `SPEC.md` (perilaku & acceptance criteria) dan `UI-SPEC.md` 
 **Acceptance criteria**
 
 - [ ] `load()` pada localStorage kosong menghasilkan tepat 8 produk sesuai SPEC 5.2 (total stok 124, 3 unggulan, 1 stok habis).
-- [ ] Setelah `save()`, kunci `washly:products:v1` berisi `version: 1` dan array `products`; tidak ada kunci lain yang dibuat aplikasi.
+- [ ] Setelah `save()`, kunci `rasanusa:products:v1` berisi array produk JSON; tidak ada kunci lain yang dibuat aplikasi.
 - [ ] `formatRupiah(32000)` menghasilkan `Rp 32.000`; nilai `0` menghasilkan `Rp 0`.
 - [ ] Teks `<b>uji</b>` yang dilewatkan `escapeHtml` tampil sebagai teks biasa, bukan HTML aktif.
 - [ ] `WHATSAPP_NUMBER` hanya berisi digit, jelas ditandai demo, dan tidak ada API key/secret di repo.
@@ -535,7 +535,7 @@ Dokumen ini memecah `SPEC.md` (perilaku & acceptance criteria) dan `UI-SPEC.md` 
 **Acceptance criteria**
 
 - [ ] Setelah reset, tepat 8 produk seed tampil dan ringkasan kembali **8 / 124 / 3 / 1** (AC-22).
-- [ ] Kunci `washly:products:v1` berisi 8 item valid; tidak ada kunci duplikat.
+- [ ] Kunci `rasanusa:products:v1` berisi 8 item valid; tidak ada kunci duplikat.
 - [ ] Reset setelah tambah/ubah/hapus benar-benar membuang perubahan lokal.
 - [ ] Membatalkan dialog reset tidak mengubah apa pun.
 
@@ -712,7 +712,7 @@ Dokumen ini memecah `SPEC.md` (perilaku & acceptance criteria) dan `UI-SPEC.md` 
 - [ ] Tidak ada API key/token/password/secret di kode, config, commit, atau storage (AC-27).
 - [ ] Tidak ada request eksternal saat memuat katalog; satu-satunya tautan keluar adalah `wa.me` saat diklik.
 - [ ] Tidak ada data pribadi (nama orang, alamat, email, telepon pelanggan) di seed/kode.
-- [ ] Hanya kunci `washly:products:v1` (dan kunci milik Vite bila dev) yang terlihat.
+- [ ] Hanya kunci `rasanusa:products:v1` (dan kunci milik Vite bila dev) yang terlihat.
 - [ ] README menjelaskan nomor WhatsApp demo dan cara menggantinya.
 
 **Berkas yang mungkin berubah:** `src/config.js`, `README.md`, `.gitignore`, `package.json`

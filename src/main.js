@@ -1,14 +1,19 @@
 import './style.css';
 import { CATEGORIES, SORT_OPTIONS, filterProducts } from './products.js';
-import { STORAGE_KEY, getSummary, loadProducts } from './store.js';
+import { STORAGE_KEY, getSummary, loadProductsWithStatus, resetProducts, saveProducts } from './store.js';
+import { getDefaultFormValues, parseProductsJson, validateProductInput } from './validation.js';
 import {
   escapeHtml,
   formatRupiah,
   getStockMeta,
+  renderCategoryBreakdown,
   renderCategoryCard,
   renderNoResultsState,
   renderProductCard,
+  renderProductFormPanel,
+  renderProductTable,
   renderSummaryCards,
+  showToast,
 } from './ui.js';
 
 const app = document.querySelector('#app');
@@ -17,7 +22,8 @@ if (!app) {
   throw new Error('Elemen #app tidak ditemukan.');
 }
 
-let products = loadProducts();
+const initialLoad = loadProductsWithStatus();
+let products = initialLoad.products;
 
 app.innerHTML = `
   <a class="skip-link" href="#main">Lewati ke konten utama</a>
@@ -71,7 +77,50 @@ const DOCUMENT_TITLES = {
 };
 
 const DEFAULT_FILTERS = { query: '', kategori: 'semua', sort: 'nama-asc' };
+const FORM_FIELDS = ['nama', 'kategori', 'harga', 'stok', 'imageUrl', 'deskripsi'];
 let catalogState = { ...DEFAULT_FILTERS };
+let dashboardForm = createClosedFormState();
+
+function createClosedFormState() {
+  return {
+    open: false,
+    mode: 'create',
+    editingId: null,
+    values: getDefaultFormValues(),
+    errors: {},
+    submitted: false,
+  };
+}
+
+function resetFormState() {
+  dashboardForm = createClosedFormState();
+}
+
+function formValuesFromProduct(product) {
+  return {
+    nama: product.nama,
+    kategori: product.kategori,
+    harga: String(product.harga),
+    stok: String(product.stok),
+    deskripsi: product.deskripsi ?? '',
+    imageUrl: product.imageUrl,
+    unggulan: Boolean(product.unggulan),
+  };
+}
+
+function readFormValues(form) {
+  const data = new FormData(form);
+
+  return {
+    nama: String(data.get('nama') ?? ''),
+    kategori: String(data.get('kategori') ?? ''),
+    harga: String(data.get('harga') ?? ''),
+    stok: String(data.get('stok') ?? ''),
+    deskripsi: String(data.get('deskripsi') ?? ''),
+    imageUrl: String(data.get('imageUrl') ?? ''),
+    unggulan: data.has('unggulan'),
+  };
+}
 
 function getRoute() {
   if (window.location.hash === '#/katalog') return 'katalog';
@@ -343,8 +392,104 @@ function renderCatalog() {
   `;
 }
 
+function updateErrorMessages() {
+  FORM_FIELDS.forEach((name) => {
+    const message = dashboardForm.submitted ? dashboardForm.errors[name] ?? '' : '';
+    const errorNode = view.querySelector(`[data-error-for="${name}"]`);
+    const field = view.querySelector(`#product-form [name="${name}"]`);
+
+    if (errorNode) {
+      errorNode.textContent = message;
+      errorNode.hidden = !message;
+      errorNode.closest('.form-field')?.classList.toggle('has-error', Boolean(message));
+    }
+
+    if (field) field.setAttribute('aria-invalid', message ? 'true' : 'false');
+  });
+}
+
+function focusFirstInvalid() {
+  const firstInvalid = FORM_FIELDS.find((name) => dashboardForm.errors[name]);
+  if (firstInvalid) view.querySelector(`#product-form [name="${firstInvalid}"]`)?.focus();
+}
+
+function clearFieldError(name) {
+  if (!dashboardForm.submitted || !dashboardForm.errors[name]) return;
+  delete dashboardForm.errors[name];
+  updateErrorMessages();
+}
+
+function openProductForm(mode, product = null) {
+  dashboardForm = {
+    open: true,
+    mode,
+    editingId: mode === 'edit' ? product.id : null,
+    values: mode === 'edit' ? formValuesFromProduct(product) : getDefaultFormValues(),
+    errors: {},
+    submitted: false,
+  };
+
+  renderDashboard();
+
+  const field = view.querySelector('#field-nama');
+  field?.focus({ preventScroll: true });
+  field?.scrollIntoView({ block: 'center' });
+}
+
+function commitProducts(nextProducts, message) {
+  products = nextProducts;
+  const saved = saveProducts(products);
+
+  resetFormState();
+  render();
+
+  showToast(
+    saved.ok ? message : 'Perubahan tersimpan di memori, tetapi gagal ditulis ke perangkat.',
+    saved.ok ? 'success' : 'error',
+  );
+}
+
+function exportProductsJson() {
+  const blob = new Blob([JSON.stringify(products, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `rasanusa-products-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  showToast(`${products.length} produk diekspor ke JSON.`, 'success');
+}
+
+async function importProductsFromFile(file) {
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Import gagal: ukuran file maksimal 2 MB.', 'error');
+    return;
+  }
+
+  try {
+    const result = parseProductsJson(await file.text());
+    if (!result.ok) {
+      showToast(`Import gagal: ${result.error}`, 'error');
+      return;
+    }
+
+    commitProducts(result.products, `${result.products.length} produk berhasil diimpor.`);
+  } catch {
+    showToast('Import gagal: file tidak dapat dibaca.', 'error');
+  } finally {
+    const input = view.querySelector('.js-import-file');
+    if (input) input.value = '';
+  }
+}
+
 function renderDashboard() {
   const summary = getSummary(products);
+  const formPanel = dashboardForm.open ? renderProductFormPanel(dashboardForm) : '';
 
   view.innerHTML = `
     <section class="page" aria-labelledby="page-title">
@@ -353,25 +498,37 @@ function renderDashboard() {
           <p class="eyebrow">PENGELOLAAN</p>
           <h1 id="page-title" class="page-title" tabindex="-1">Dashboard demo</h1>
           <p class="page-lead">
-            Kelola katalog di perangkat ini. Perubahan akan tersimpan lokal setelah fitur CRUD aktif.
+            Kelola katalog di perangkat ini. Setiap perubahan langsung tampil di katalog publik.
           </p>
         </header>
 
         <div class="notice" role="note">
-          <strong>Mode demo.</strong> Tanpa login dan tanpa backend. Data hanya ada di browser ini.
+          <strong>Mode demo.</strong> Tanpa login, password, sesi, atau backend. Data hanya ada di browser ini.
         </div>
+
+        <div class="dashboard-toolbar">
+          <button type="button" class="btn btn--primary js-open-form">+ Tambah produk</button>
+          <button type="button" class="btn btn--secondary js-export-json">Export JSON</button>
+          <button type="button" class="btn btn--secondary js-import-button">Import JSON</button>
+          <input class="js-import-file" type="file" accept="application/json,.json" hidden />
+          <button type="button" class="btn btn--secondary js-reset-products">Reset demo</button>
+        </div>
+        <p class="section-note">Import JSON akan menggantikan seluruh produk yang tersimpan di perangkat ini.</p>
 
         <div class="summary-grid">
           ${renderSummaryCards(summary)}
         </div>
 
-        <div class="placeholder-panel">
-          <h2>Pengelolaan produk menyusul</h2>
-          <p>
-            Tahap ini menghubungkan data contoh, penyimpanan lokal, dan tampilan katalog.
-            Form tambah, ubah, dan hapus produk akan ditambahkan pada tahap berikutnya.
-          </p>
-        </div>
+        ${renderCategoryBreakdown(products)}
+        ${formPanel}
+
+        <section class="table-panel" aria-labelledby="product-table-heading">
+          <div class="table-panel-head">
+            <h2 id="product-table-heading">Daftar produk</h2>
+            <p>Ubah atau hapus produk. Katalog publik mengikuti data di bawah ini.</p>
+          </div>
+          ${renderProductTable(products)}
+        </section>
       </div>
     </section>
   `;
@@ -421,38 +578,180 @@ view.addEventListener(
 );
 
 view.addEventListener('input', (event) => {
-  if (!event.target.matches('.js-product-search')) return;
-  catalogState.query = event.target.value;
-  updateFilterResults();
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+
+  if (target.matches('.js-product-search')) {
+    catalogState.query = target.value;
+    updateFilterResults();
+    return;
+  }
+
+  if (target.closest('#product-form') && target.name) {
+    clearFieldError(target.name);
+  }
 });
 
 view.addEventListener('change', (event) => {
   const target = event.target;
+  if (!(target instanceof Element)) return;
 
-  if (target.matches('.js-category-filter')) {
+  if (target.matches('.js-import-file')) {
+    importProductsFromFile(target.files?.[0]);
+  } else if (target.matches('.js-category-filter')) {
     catalogState.kategori = target.value;
     updateFilterResults();
   } else if (target.matches('.js-sort')) {
     catalogState.sort = target.value;
     updateFilterResults();
+  } else if (target.closest('#product-form') && target.name) {
+    clearFieldError(target.name);
   }
 });
 
 view.addEventListener('click', (event) => {
-  if (!event.target.closest('.js-reset-filters')) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
 
-  catalogState = { ...DEFAULT_FILTERS };
-  syncFilterToolbar();
-  updateFilterResults();
+  if (target.closest('.js-reset-filters')) {
+    catalogState = { ...DEFAULT_FILTERS };
+    syncFilterToolbar();
+    updateFilterResults();
+    return;
+  }
+
+  if (target.closest('.js-open-form')) {
+    openProductForm('create');
+    return;
+  }
+
+  if (target.closest('.js-close-form')) {
+    resetFormState();
+    renderDashboard();
+    view.querySelector('.js-open-form')?.focus();
+    return;
+  }
+
+  if (target.closest('.js-export-json')) {
+    exportProductsJson();
+    return;
+  }
+
+  if (target.closest('.js-import-button')) {
+    view.querySelector('.js-import-file')?.click();
+    return;
+  }
+
+  const editButton = target.closest('.js-edit-product');
+  if (editButton) {
+    const product = products.find((item) => item.id === editButton.dataset.editId);
+    if (!product) {
+      showToast('Produk tidak ditemukan.', 'error');
+      return;
+    }
+    openProductForm('edit', product);
+    return;
+  }
+
+  const deleteButton = target.closest('.js-delete-product');
+  if (deleteButton) {
+    const product = products.find((item) => item.id === deleteButton.dataset.deleteId);
+    if (!product) {
+      showToast('Produk tidak ditemukan.', 'error');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Hapus produk "${product.nama}"? Tindakan ini tidak dapat dibatalkan.`,
+    );
+    if (!confirmed) return;
+
+    commitProducts(
+      products.filter((item) => item.id !== product.id),
+      'Produk dihapus.',
+    );
+    return;
+  }
+
+  if (target.closest('.js-reset-products')) {
+    const confirmed = window.confirm(
+      'Kembalikan semua produk ke data contoh? Perubahan lokal akan hilang.',
+    );
+    if (!confirmed) return;
+
+    commitProducts(resetProducts(), 'Data contoh dipulihkan.');
+  }
 });
 
-window.addEventListener('hashchange', () => render({ focusHeading: true }));
+view.addEventListener('submit', (event) => {
+  if (!(event.target instanceof HTMLFormElement) || !event.target.matches('#product-form')) return;
+  event.preventDefault();
+
+  const values = readFormValues(event.target);
+  dashboardForm.values = values;
+  dashboardForm.submitted = true;
+
+  if (dashboardForm.mode === 'edit' && !products.some((item) => item.id === dashboardForm.editingId)) {
+    showToast('Produk yang diubah tidak ditemukan.', 'error');
+    resetFormState();
+    renderDashboard();
+    return;
+  }
+
+  const result = validateProductInput(values, {
+    existingProducts: products,
+    editingId: dashboardForm.mode === 'edit' ? dashboardForm.editingId : null,
+  });
+  dashboardForm.errors = result.errors;
+
+  if (!result.valid) {
+    updateErrorMessages();
+    focusFirstInvalid();
+    return;
+  }
+
+  const nextProducts =
+    dashboardForm.mode === 'edit'
+      ? products.map((item) => (item.id === result.product.id ? result.product : item))
+      : [...products, result.product];
+
+  commitProducts(
+    nextProducts,
+    dashboardForm.mode === 'edit' ? 'Perubahan produk disimpan.' : 'Produk ditambahkan.',
+  );
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !dashboardForm.open) return;
+
+  event.preventDefault();
+  resetFormState();
+  renderDashboard();
+  view.querySelector('.js-open-form')?.focus();
+});
+
+window.addEventListener('hashchange', () => {
+  resetFormState();
+  render({ focusHeading: true });
+});
 
 window.addEventListener('storage', (event) => {
   if (event.key === STORAGE_KEY || event.key === null) {
-    products = loadProducts();
+    const loaded = loadProductsWithStatus();
+    resetFormState();
+    products = loaded.products;
     render();
+
+    if (loaded.status === 'recovered') {
+      showToast('Data lokal tidak valid. Katalog dipulihkan ke data contoh.', 'info');
+    }
   }
 });
 
 render();
+
+if (initialLoad.status === 'recovered') {
+  showToast('Data lokal tidak valid. Katalog dipulihkan ke data contoh.', 'info');
+} else if (initialLoad.status === 'unavailable') {
+  showToast('Penyimpanan lokal tidak tersedia. Perubahan hanya berlaku sampai halaman ditutup.', 'error');
+}

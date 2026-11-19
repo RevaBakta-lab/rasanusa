@@ -177,9 +177,9 @@ Nilai awal dengan data seed: **8 / 124 / 3 / 1**.
 
 **F-10 — Penyimpanan**
 
-- Kunci: `washly:products:v1`. Nilai: JSON `{ "version": 1, "products": [...] }` (lihat 5.4).
+- Kunci: `rasanusa:products:v1`. Nilai: JSON berupa array produk, mis. `[{ "id": "p-01", ... }]` (lihat 5.4).
 - Setiap operasi tambah/ubah/hapus/reset langsung menulis ke `localStorage` (sinkron, tanpa tombol "Simpan ke perangkat").
-- Jika data tidak ada → seed. Jika JSON rusak/versi tidak dikenal → seed ulang + toast "Data lokal tidak valid, katalog dikembalikan ke data contoh".
+- Jika data tidak ada → seed. Jika JSON rusak/struktur tidak valid → seed ulang + toast "Data lokal tidak valid, katalog dikembalikan ke data contoh".
 - Jika `localStorage` gagal (quota/private mode), tampilkan toast error dan pertahankan data di memori selama sesi; jelaskan bahwa perubahan tidak akan bertahan setelah reload.
 - Tidak menyimpan data sensitif apa pun (tanpa API key, token, nomor pelanggan, atau data pribadi).
 
@@ -190,7 +190,7 @@ Nilai awal dengan data seed: **8 / 124 / 3 / 1**.
 
 **F-12 — Sinkronisasi antar-tab (S)**
 
-- Mendengarkan event `storage` untuk kunci `washly:products:v1`, lalu merender ulang katalog, dashboard, dan ringkasan.
+- Mendengarkan event `storage` untuk kunci `rasanusa:products:v1`, lalu merender ulang katalog, dashboard, dan ringkasan.
 - Tidak wajib untuk lulus MVP; jika diimplementasikan, tidak boleh menyebabkan loop penulisan.
 
 ---
@@ -263,26 +263,24 @@ Perilaku tambahan:
 ### 5.4 Skema penyimpanan
 
 ```json
-{
-  "version": 1,
-  "products": [
-    {
-      "id": "p-01",
-      "nama": "Deterjen Cair Konsentrat 1L",
-      "kategori": "Bahan Cuci",
-      "harga": 32000,
-      "stok": 24,
-      "deskripsi": "Deterjen cair pekat untuk cucian harian, mudah dibilas.",
-      "imageUrl": "assets/products/deterjen-cair.svg",
-      "unggulan": true
-    }
-  ]
-}
+[
+  {
+    "id": "p-01",
+    "nama": "Deterjen Cair Konsentrat 1L",
+    "kategori": "Bahan Cuci",
+    "harga": 32000,
+    "stok": 24,
+    "deskripsi": "Deterjen cair pekat untuk cucian harian, mudah dibilas.",
+    "imageUrl": "assets/products/deterjen-cair.svg",
+    "unggulan": true
+  }
+]
 ```
 
-- Kunci: `washly:products:v1`.
-- Saat memuat: validasi bentuk minimal (array `products`, setiap item punya `id` unik dan field wajib bertipe benar). Item tidak valid diabaikan; bila tidak ada item valid, seed ulang.
-- Migrasi versi: jika `version !== 1` atau tidak dikenal, seed ulang dan beri tahu pengguna (MVP tidak menyediakan migrasi).
+- Kunci: `rasanusa:products:v1`.
+- Saat memuat: `JSON.parse` dalam `try/catch`, lalu validasi array dan tipe setiap field. ID harus unik.
+- Bila JSON rusak, struktur salah, atau ada field tidak valid: tampilkan notifikasi dan pulihkan seluruh data contoh.
+- Array kosong adalah keadaan valid (semua produk bisa dihapus; tombol reset demo mengembalikan data contoh).
 
 ### 5.5 Struktur folder yang diusulkan
 
@@ -407,19 +405,19 @@ washly/
 
 ## 9. Acceptance Criteria (verifikasi manual)
 
-**Persiapan:** jalankan `npm run dev` (atau `npm run build` + `npm run preview`), buka aplikasi, lalu buka DevTools → Application → Local Storage dan Console. Untuk uji "pertama kali", hapus kunci `washly:products:v1` lalu reload.
+**Persiapan:** jalankan `npm run dev` (atau `npm run build` + `npm run preview`), buka aplikasi, lalu buka DevTools → Application → Local Storage dan Console. Untuk uji "pertama kali", hapus kunci `rasanusa:products:v1` lalu reload.
 
 Format: setiap AC berisi prasyarat, langkah, dan hasil yang diharapkan. AC dinyatakan **LULUS** hanya jika seluruh hasil sesuai.
 
 ### 9.1 Katalog dan data awal
 
 **AC-01 — Seed otomatis saat pertama dibuka**
-- **Prasyarat:** `washly:products:v1` tidak ada.
+- **Prasyarat:** `rasanusa:products:v1` tidak ada.
 - **Langkah:** buka `#/katalog`.
 - **Hasil:**
   1. Tepat **8 kartu produk** tampil.
   2. Nama, kategori, harga, dan stok sesuai tabel 5.2.
-  3. Kunci `washly:products:v1` muncul di Local Storage dengan `version: 1` dan 8 item.
+  3. Kunci `rasanusa:products:v1` muncul di Local Storage sebagai array dengan 8 produk.
   4. Tidak ada error di Console.
 
 **AC-02 — Persistensi setelah reload**
@@ -538,7 +536,7 @@ Format: setiap AC berisi prasyarat, langkah, dan hasil yang diharapkan. AC dinya
 ### 9.5 Penyimpanan, keandalan, dan kualitas
 
 **AC-23 — Data lokal rusak**
-- **Langkah:** di DevTools, set `washly:products:v1` menjadi `{rusak`, lalu reload.
+- **Langkah:** di DevTools, set `rasanusa:products:v1` menjadi `{rusak`, lalu reload.
 - **Hasil:** aplikasi tidak blank/crash; data seed dimuat; toast memberi tahu data lokal tidak valid; tidak ada error tak tertangani di Console.
 
 **AC-24 — Escape input (anti-XSS)**

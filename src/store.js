@@ -1,51 +1,31 @@
 import { SEED_PRODUCTS } from './products.js';
+import { parseProductRecord, parseProductsPayload } from './validation.js';
 
 /**
  * Sumber kebenaran data Washly: localStorage pada perangkat ini.
  * Tidak ada backend, tidak ada data pribadi, tidak ada secret.
  */
-export const STORAGE_KEY = 'washly:products:v1';
+export const STORAGE_KEY = 'rasanusa:products:v1';
+
+/** Disimpan untuk kompatibilitas dokumentasi; payload kini berupa array produk. */
 export const SCHEMA_VERSION = 1;
-
-const IMAGE_PATH_PATTERN = /^assets\/products\/[a-z0-9-]+\.svg$/;
-
-const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
-const isNonNegativeInteger = (value) => Number.isInteger(value) && value >= 0;
 
 export function createSeedProducts() {
   return SEED_PRODUCTS.map((product) => ({ ...product }));
 }
 
-/** Validasi bentuk minimal sebelum data dari localStorage dipakai. */
+/** Validator bentuk minimal sebelum data dari localStorage dipakai. */
 export function isValidProduct(product) {
-  if (!product || typeof product !== 'object') return false;
-
-  return (
-    isNonEmptyString(product.id) &&
-    typeof product.nama === 'string' &&
-    product.nama.trim().length >= 3 &&
-    product.nama.trim().length <= 60 &&
-    typeof product.kategori === 'string' &&
-    product.kategori.trim().length >= 2 &&
-    product.kategori.trim().length <= 30 &&
-    isNonNegativeInteger(product.harga) &&
-    isNonNegativeInteger(product.stok) &&
-    typeof product.deskripsi === 'string' &&
-    product.deskripsi.length <= 240 &&
-    typeof product.imageUrl === 'string' &&
-    IMAGE_PATH_PATTERN.test(product.imageUrl) &&
-    typeof product.unggulan === 'boolean'
-  );
+  return parseProductRecord(product).ok;
 }
 
 /**
- * Menyimpan daftar produk. Mengembalikan hasil agar UI dapat menampilkan
- * peringatan bila penyimpanan gagal (quota/private mode).
+ * Menyimpan array produk sebagai JSON. Mengembalikan hasil agar UI dapat
+ * menampilkan peringatan bila penyimpanan gagal (quota/private mode).
  */
 export function saveProducts(products) {
   try {
-    const payload = { version: SCHEMA_VERSION, products };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
     return { ok: true };
   } catch (error) {
     return { ok: false, error };
@@ -59,37 +39,42 @@ function seedStorage() {
 }
 
 /**
- * Memuat produk dari localStorage. Bila kosong, rusak, atau tidak sesuai
- * skema, data contoh dipakai agar aplikasi tidak pernah blank.
+ * Memuat dan memvalidasi produk dari localStorage.
+ *
+ * Status:
+ * - `ok`: data valid (array kosong juga valid).
+ * - `seeded`: kunci belum ada, data contoh dipakai.
+ * - `recovered`: JSON rusak/struktur tidak valid, data contoh dipulihkan.
+ * - `unavailable`: localStorage tidak bisa dibaca.
  */
-export function loadProducts() {
+export function loadProductsWithStatus() {
   let raw;
 
   try {
     raw = localStorage.getItem(STORAGE_KEY);
   } catch {
-    return createSeedProducts();
+    return { products: createSeedProducts(), status: 'unavailable' };
   }
 
-  if (!raw) return seedStorage();
+  if (raw === null) {
+    return { products: seedStorage(), status: 'seeded' };
+  }
 
   try {
-    const parsed = JSON.parse(raw);
-    if (parsed?.version !== SCHEMA_VERSION || !Array.isArray(parsed.products)) {
-      return seedStorage();
+    const parsed = parseProductsPayload(JSON.parse(raw));
+    if (!parsed.ok) {
+      return { products: seedStorage(), status: 'recovered' };
     }
 
-    const seenIds = new Set();
-    const products = parsed.products.filter((product) => {
-      if (!isValidProduct(product) || seenIds.has(product.id)) return false;
-      seenIds.add(product.id);
-      return true;
-    });
-
-    return products.length > 0 ? products : seedStorage();
+    return { products: parsed.products, status: 'ok' };
   } catch {
-    return seedStorage();
+    return { products: seedStorage(), status: 'recovered' };
   }
+}
+
+/** Pembungkus untuk kode yang hanya butuh array produk. */
+export function loadProducts() {
+  return loadProductsWithStatus().products;
 }
 
 export function resetProducts() {

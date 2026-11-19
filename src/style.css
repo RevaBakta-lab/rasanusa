@@ -1026,6 +1026,336 @@ a {
   font-size: 0.875rem;
 }
 
+.dashboard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.category-summary {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.category-summary h2 {
+  margin: 0 0 4px;
+  font-size: 1.0625rem;
+}
+
+.category-summary p {
+  margin: 0 0 12px;
+  color: var(--slate-500);
+  font-size: 0.875rem;
+}
+
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 0.8125rem;
+}
+
+.category-pill strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.table-panel {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.table-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 14px;
+}
+
+.table-panel-head h2 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.table-panel-head p {
+  margin: 0;
+  color: var(--slate-500);
+  font-size: 0.8125rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.product-table th,
+.product-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.product-table thead th {
+  background: var(--bg);
+  color: var(--slate-500);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.product-table tbody tr:last-child th,
+.product-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.cell-name {
+  min-width: 220px;
+}
+
+.table-name {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.table-desc {
+  display: block;
+  max-width: 320px;
+  overflow: hidden;
+  color: var(--slate-400);
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-number {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.flag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--slate-500);
+  font-size: 0.75rem;
+}
+
+.flag--yes {
+  background: var(--mint-100);
+  color: var(--mint-800);
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn--table {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.btn--table-danger {
+  border-color: #fecaca;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.btn--table-danger:hover {
+  border-color: var(--danger);
+  background: #fee2e2;
+}
+
+.form-panel {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--aqua-200);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.form-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.form-panel-head h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field--wide {
+  grid-column: 1 / -1;
+}
+
+.form-field > label {
+  color: var(--slate-600);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.form-field input[type='text'],
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+
+.form-field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--slate-400);
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible {
+  border-color: var(--aqua-700);
+  outline: 2px solid var(--aqua-700);
+  outline-offset: 1px;
+}
+
+.form-field.has-error input,
+.form-field.has-error select,
+.form-field.has-error textarea {
+  border-color: var(--danger);
+}
+
+.field-hint,
+.field-error {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.field-hint {
+  color: var(--slate-400);
+}
+
+.field-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--slate-600);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--aqua-700);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.toast-region {
+  position: fixed;
+  z-index: 50;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  width: min(360px, calc(100vw - 32px));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  color: var(--ink);
+  font-size: 0.875rem;
+}
+
+.toast--success {
+  border-left-color: var(--mint-700);
+}
+
+.toast--info {
+  border-left-color: var(--aqua-700);
+}
+
+.toast--error {
+  border-left-color: var(--danger);
+}
+
 /* Footer ------------------------------------------------------------------ */
 
 .site-footer {
@@ -1094,6 +1424,10 @@ a {
     width: auto;
   }
 
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1129,6 +1463,10 @@ a {
 
   .cta-inner {
     padding-block: 48px;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .product-grid {
