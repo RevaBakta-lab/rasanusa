@@ -1,0 +1,15 @@
+{
+  "name": "washly",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Katalog produk laundry Washly — demo lokal tanpa backend",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.3.8"
+  }
+}
